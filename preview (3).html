@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dulce Dúo - Sistema en Línea</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #fff7ed;
+      color: #3b2f2f;
+    }
+
+    header {
+      background: linear-gradient(135deg, #7c2d12, #c2410c, #fb923c);
+      color: white;
+      padding: 28px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 40px;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      font-size: 16px;
+    }
+
+    nav {
+      background: white;
+      padding: 14px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    nav button {
+      border: none;
+      background: #fed7aa;
+      color: #7c2d12;
+      padding: 11px 18px;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    nav button:hover,
+    nav button.activo {
+      background: #c2410c;
+      color: white;
+    }
+
+    main {
+      max-width: 1300px;
+      margin: auto;
+      padding: 22px;
+    }
+
+    .seccion {
+      display: none;
+    }
+
+    .seccion.activa {
+      display: block;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 22px;
+      padding: 22px;
+      margin-bottom: 22px;
+      box-shadow: 0 8px 24px rgba(124,45,18,0.12);
+    }
+
+    .titulo {
+      margin-top: 0;
+      color: #7c2d12;
+    }
+
+    .subtitulo {
+      margin-bottom: 10px;
+      color: #9a3412;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      align-items: end;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #7c2d12;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #fdba74;
+      border-radius: 12px;
+      outline: none;
+      background: #fffaf5;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #c2410c;
+      box-shadow: 0 0 0 3px rgba(194,65,12,0.15);
+    }
+
+    .btn {
+      border: none;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: #c2410c;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #9a3412;
+    }
+
+    .btn-verde {
+      background: #15803d;
+    }
+
+    .btn-rojo {
+      background: #dc2626;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .resumen {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(124,45,18,0.12);
+      border-left: 6px solid #fb923c;
+    }
+
+    .card span {
+      color: #9a3412;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .card h2 {
+      margin: 10px 0 0;
+      font-size: 25px;
+      color: #3b2f2f;
+    }
+
+    .productos {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .producto-card {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .producto-card h3 {
+      margin: 0;
+      color: #7c2d12;
+    }
+
+    .producto-card p {
+      margin: 8px 0 0;
+      color: #6b3f2a;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .chip {
+      background: #ffedd5;
+      color: #7c2d12;
+      border: 1px solid #fdba74;
+      padding: 7px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .checkbox-area {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .opcion {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      padding: 10px;
+      border-radius: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .opcion input {
+      width: auto;
+    }
+
+    .pedido-total {
+      background: #ffedd5;
+      border: 1px solid #fdba74;
+      color: #7c2d12;
+      padding: 16px;
+      border-radius: 16px;
+      margin-top: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: right;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 14px;
+    }
+
+    th {
+      background: #7c2d12;
+      color: white;
+      padding: 12px;
+      text-align: left;
+    }
+
+    td {
+      padding: 11px;
+      border-bottom: 1px solid #fed7aa;
+      vertical-align: top;
+    }
+
+    tr:hover {
+      background: #fff7ed;
+    }
+
+    .estado {
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    .pendiente {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .entregado {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .cancelado {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .nota {
+      background: #ffedd5;
+      border: 1px solid #fdba74;
+      color: #7c2d12;
+      padding: 14px;
+      border-radius: 14px;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .conexion {
+      padding: 10px 14px;
+      border-radius: 999px;
+      display: inline-block;
+      font-weight: bold;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    .online {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .offline {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #7c2d12;
+      font-weight: bold;
+    }
+
+    @media (max-width: 1000px) {
+      .grid,
+      .grid-3,
+      .resumen,
+      .productos,
+      .checkbox-area {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 650px) {
+      header h1 {
+        font-size: 30px;
+      }
+
+      main {
+        padding: 14px;
+      }
+
+      .grid,
+      .grid-3,
+      .resumen,
+      .productos,
+      .checkbox-area {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Dulce Dúo</h1>
+  <p>Sistema web en línea para pedidos de repostería</p>
+  <span id="estadoConexion" class="conexion offline">Firebase no configurado</span>
+</header>
+
+<nav>
+  <button class="activo" onclick="mostrarSeccion('inicio', this)">Inicio</button>
+  <button onclick="mostrarSeccion('nuevoPedido', this)">Nuevo pedido</button>
+  <button onclick="mostrarSeccion('pedidos', this)">Pedidos</button>
+  <button onclick="mostrarSeccion('catalogo', this)">Catálogo</button>
+  <button onclick="mostrarSeccion('reportes', this)">Reporte</button>
+</nav>
+
+<main>
+
+  <section id="inicio" class="seccion activa">
+    <div class="resumen">
+      <div class="card">
+        <span>Ventas registradas</span>
+        <h2 id="totalVentas">Q0.00</h2>
+      </div>
+
+      <div class="card">
+        <span>Total de pedidos</span>
+        <h2 id="totalPedidos">0</h2>
+      </div>
+
+      <div class="card">
+        <span>Producto más pedido</span>
+        <h2 id="productoTop">---</h2>
+      </div>
+
+      <div class="card">
+        <span>Cliente frecuente</span>
+        <h2 id="clienteTop">---</h2>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="titulo">Productos principales</h2>
+      <div class="productos" id="vistaProductos"></div>
+    </div>
+
+    <div class="panel">
+      <h2 class="titulo">Extras disponibles</h2>
+
+      <h3 class="subtitulo">Toppings</h3>
+      <div class="chips" id="vistaToppings"></div>
+
+      <h3 class="subtitulo">Jarabes</h3>
+      <div class="chips" id="vistaJarabes"></div>
+    </div>
+  </section>
+
+  <section id="nuevoPedido" class="seccion">
+    <div class="panel">
+      <h2 class="titulo">Registrar nuevo pedido</h2>
+
+      <div class="grid">
+        <div>
+          <label>Nombre del cliente</label>
+          <input type="text" id="cliente" placeholder="Ej: María López">
+        </div>
+
+        <div>
+          <label>Producto</label>
+          <select id="producto" onchange="calcularTotalPedido()"></select>
+        </div>
+
+        <div>
+          <label>Cantidad</label>
+          <input type="number" id="cantidad" value="1" min="1" oninput="calcularTotalPedido()">
+        </div>
+
+        <div>
+          <label>Mes</label>
+          <select id="mes">
+            <option>Enero</option>
+            <option>Febrero</option>
+            <option>Marzo</option>
+            <option>Abril</option>
+            <option>Mayo</option>
+            <option>Junio</option>
+            <option>Julio</option>
+            <option>Agosto</option>
+            <option>Septiembre</option>
+            <option>Octubre</option>
+            <option>Noviembre</option>
+            <option>Diciembre</option>
+          </select>
+        </div>
+      </div>
+
+      <h3 class="subtitulo">Seleccionar toppings</h3>
+      <div class="checkbox-area" id="opcionesToppings"></div>
+
+      <h3 class="subtitulo">Seleccionar jarabes</h3>
+      <div class="checkbox-area" id="opcionesJarabes"></div>
+
+      <div class="grid-3" style="margin-top: 16px;">
+        <div>
+          <label>Estado del pedido</label>
+          <select id="estado">
+            <option>Pendiente</option>
+            <option>Entregado</option>
+            <option>Cancelado</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Observación</label>
+          <input type="text" id="observacion" placeholder="Ej: Sin mucha leche condensada">
+        </div>
+
+        <button class="btn" onclick="guardarPedido()">Guardar pedido</button>
+      </div>
+
+      <div class="pedido-total" id="totalPedido">Total estimado: Q0.00</div>
+    </div>
+  </section>
+
+  <section id="pedidos" class="seccion">
+    <div class="panel">
+      <h2 class="titulo">Lista de pedidos</h2>
+
+      <div class="grid">
+        <div>
+          <label>Filtrar por mes</label>
+          <select id="filtroMes" onchange="actualizarTodo()">
+            <option value="Todos">Todos</option>
+            <option>Enero</option>
+            <option>Febrero</option>
+            <option>Marzo</option>
+            <option>Abril</option>
+            <option>Mayo</option>
+            <option>Junio</option>
+            <option>Julio</option>
+            <option>Agosto</option>
+            <option>Septiembre</option>
+            <option>Octubre</option>
+            <option>Noviembre</option>
+            <option>Diciembre</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Filtrar por producto</label>
+          <select id="filtroProducto" onchange="actualizarTodo()">
+            <option value="Todos">Todos</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Filtrar por estado</label>
+          <select id="filtroEstado" onchange="actualizarTodo()">
+            <option value="Todos">Todos</option>
+            <option>Pendiente</option>
+            <option>Entregado</option>
+            <option>Cancelado</option>
+          </select>
+        </div>
+
+        <button class="btn-verde" onclick="limpiarFiltros()">Limpiar filtros</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Producto</th>
+            <th>Extras</th>
+            <th>Cantidad</th>
+            <th>Total</th>
+            <th>Mes</th>
+            <th>Estado</th>
+            <th>Observación</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaPedidos"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="catalogo" class="seccion">
+    <div class="panel">
+      <h2 class="titulo">Catálogo actual</h2>
+
+      <h3 class="subtitulo">Productos</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Precio base</th>
+          </tr>
+        </thead>
+        <tbody id="tablaProductos"></tbody>
+      </table>
+
+      <h3 class="subtitulo">Toppings</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Topping</th>
+            <th>Precio adicional</th>
+          </tr>
+        </thead>
+        <tbody id="tablaToppings"></tbody>
+      </table>
+
+      <h3 class="subtitulo">Jarabes</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Jarabe</th>
+            <th>Precio adicional</th>
+          </tr>
+        </thead>
+        <tbody id="tablaJarabes"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="reportes" class="seccion">
+    <div class="panel">
+      <h2 class="titulo">Reporte general</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Indicador</th>
+            <th>Resultado</th>
+          </tr>
+        </thead>
+        <tbody id="tablaReporte"></tbody>
+      </table>
+
+      <div class="nota">
+        Este archivo está preparado para guardar datos en Firebase Firestore. Cuando esté conectado,
+        los pedidos se verán desde cualquier teléfono o computadora usando el mismo link.
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Dulce Dúo | Sistema web en línea
+</footer>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "PEGA_AQUI_TU_API_KEY",
+    authDomain: "PEGA_AQUI_TU_AUTH_DOMAIN",
+    projectId: "PEGA_AQUI_TU_PROJECT_ID",
+    storageBucket: "PEGA_AQUI_TU_STORAGE_BUCKET",
+    messagingSenderId: "PEGA_AQUI_TU_MESSAGING_SENDER_ID",
+    appId: "PEGA_AQUI_TU_APP_ID"
+  };
+
+  let db = null;
+  let firebaseListo = false;
+
+  const productos = [
+    { nombre: "Churros", precio: 15 },
+    { nombre: "Cupcakes", precio: 12 },
+    { nombre: "Roles de canela", precio: 18 }
+  ];
+
+  const toppings = [
+    { nombre: "Oreo", precio: 4 },
+    { nombre: "Fresa", precio: 5 },
+    { nombre: "Melocotón", precio: 5 }
+  ];
+
+  const jarabes = [
+    { nombre: "Dulce de leche", precio: 4 },
+    { nombre: "Leche condensada", precio: 3 },
+    { nombre: "Chocolate", precio: 4 }
+  ];
+
+  let pedidos = [];
+
+  function iniciarFirebase() {
+    const estado = document.getElementById("estadoConexion");
+
+    if (firebaseConfig.apiKey.includes("PEGA_AQUI")) {
+      estado.textContent = "Firebase no configurado";
+      estado.className = "conexion offline";
+      pedidos = JSON.parse(localStorage.getItem("pedidosDulceDuoOnline")) || [];
+      actualizarTodo();
+      return;
+    }
+
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      firebaseListo = true;
+
+      estado.textContent = "Conectado a Firebase";
+      estado.className = "conexion online";
+
+      db.collection("pedidosDulceDuo")
+        .orderBy("fechaCreacion", "desc")
+        .onSnapshot(snapshot => {
+          pedidos = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+
+          actualizarTodo();
+        });
+
+    } catch (error) {
+      estado.textContent = "Error de conexión Firebase";
+      estado.className = "conexion offline";
+      alert("Error al conectar Firebase: " + error.message);
+    }
+  }
+
+  function moneda(valor) {
+    return "Q" + Number(valor).toLocaleString("es-GT", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function mostrarSeccion(id, boton) {
+    document.querySelectorAll(".seccion").forEach(seccion => seccion.classList.remove("activa"));
+    document.getElementById(id).classList.add("activa");
+
+    document.querySelectorAll("nav button").forEach(btn => btn.classList.remove("activo"));
+    boton.classList.add("activo");
+
+    actualizarTodo();
+  }
+
+  function cargarSelects() {
+    const productoSelect = document.getElementById("producto");
+    const filtroProducto = document.getElementById("filtroProducto");
+
+    productoSelect.innerHTML = "";
+    filtroProducto.innerHTML = '<option value="Todos">Todos</option>';
+
+    productos.forEach(producto => {
+      productoSelect.innerHTML += `<option value="${producto.nombre}">${producto.nombre} - ${moneda(producto.precio)}</option>`;
+      filtroProducto.innerHTML += `<option value="${producto.nombre}">${producto.nombre}</option>`;
+    });
+  }
+
+  function cargarExtras() {
+    const contenedorToppings = document.getElementById("opcionesToppings");
+    const contenedorJarabes = document.getElementById("opcionesJarabes");
+
+    contenedorToppings.innerHTML = "";
+    contenedorJarabes.innerHTML = "";
+
+    toppings.forEach(item => {
+      contenedorToppings.innerHTML += `
+        <label class="opcion">
+          <input type="checkbox" value="${item.nombre}" data-precio="${item.precio}" onchange="calcularTotalPedido()">
+          ${item.nombre} (${moneda(item.precio)})
+        </label>
+      `;
+    });
+
+    jarabes.forEach(item => {
+      contenedorJarabes.innerHTML += `
+        <label class="opcion">
+          <input type="checkbox" value="${item.nombre}" data-precio="${item.precio}" onchange="calcularTotalPedido()">
+          ${item.nombre} (${moneda(item.precio)})
+        </label>
+      `;
+    });
+  }
+
+  function obtenerSeleccionados(contenedorId) {
+    return Array.from(document.querySelectorAll(`#${contenedorId} input:checked`)).map(input => ({
+      nombre: input.value,
+      precio: Number(input.dataset.precio)
+    }));
+  }
+
+  function calcularTotalPedido() {
+    const nombreProducto = document.getElementById("producto").value;
+    const cantidad = Number(document.getElementById("cantidad").value) || 0;
+    const producto = productos.find(item => item.nombre === nombreProducto);
+
+    if (!producto) return 0;
+
+    const extrasToppings = obtenerSeleccionados("opcionesToppings");
+    const extrasJarabes = obtenerSeleccionados("opcionesJarabes");
+    const extrasUnitarios = [...extrasToppings, ...extrasJarabes].reduce((suma, item) => suma + item.precio, 0);
+    const total = (producto.precio + extrasUnitarios) * cantidad;
+
+    document.getElementById("totalPedido").textContent = "Total estimado: " + moneda(total);
+    return total;
+  }
+
+  async function guardarPedido() {
+    const cliente = document.getElementById("cliente").value.trim();
+    const nombreProducto = document.getElementById("producto").value;
+    const cantidad = Number(document.getElementById("cantidad").value);
+    const mes = document.getElementById("mes").value;
+    const estado = document.getElementById("estado").value;
+    const observacion = document.getElementById("observacion").value.trim();
+
+    if (!cliente || cantidad <= 0) {
+      alert("Ingresa el nombre del cliente y una cantidad válida.");
+      return;
+    }
+
+    const producto = productos.find(item => item.nombre === nombreProducto);
+    const seleccionToppings = obtenerSeleccionados("opcionesToppings");
+    const seleccionJarabes = obtenerSeleccionados("opcionesJarabes");
+    const total = calcularTotalPedido();
+
+    const pedido = {
+      cliente,
+      producto: producto.nombre,
+      precioProducto: producto.precio,
+      cantidad,
+      toppings: seleccionToppings.map(item => item.nombre),
+      jarabes: seleccionJarabes.map(item => item.nombre),
+      total,
+      mes,
+      estado,
+      observacion,
+      fechaCreacion: new Date()
+    };
+
+    try {
+      if (firebaseListo) {
+        await db.collection("pedidosDulceDuo").add(pedido);
+      } else {
+        pedidos.push({
+          ...pedido,
+          id: Date.now().toString()
+        });
+        localStorage.setItem("pedidosDulceDuoOnline", JSON.stringify(pedidos));
+        actualizarTodo();
+      }
+
+      document.getElementById("cliente").value = "";
+      document.getElementById("cantidad").value = 1;
+      document.getElementById("observacion").value = "";
+      document.querySelectorAll("input[type='checkbox']").forEach(input => input.checked = false);
+
+      calcularTotalPedido();
+      alert("Pedido guardado correctamente.");
+
+    } catch (error) {
+      alert("No se pudo guardar el pedido: " + error.message);
+    }
+  }
+
+  function pedidosFiltrados() {
+    const mes = document.getElementById("filtroMes") ? document.getElementById("filtroMes").value : "Todos";
+    const producto = document.getElementById("filtroProducto") ? document.getElementById("filtroProducto").value : "Todos";
+    const estado = document.getElementById("filtroEstado") ? document.getElementById("filtroEstado").value : "Todos";
+
+    return pedidos
+      .filter(pedido => mes === "Todos" || pedido.mes === mes)
+      .filter(pedido => producto === "Todos" || pedido.producto === producto)
+      .filter(pedido => estado === "Todos" || pedido.estado === estado);
+  }
+
+  function limpiarFiltros() {
+    document.getElementById("filtroMes").value = "Todos";
+    document.getElementById("filtroProducto").value = "Todos";
+    document.getElementById("filtroEstado").value = "Todos";
+    actualizarTodo();
+  }
+
+  async function eliminarPedido(id) {
+    try {
+      if (firebaseListo) {
+        await db.collection("pedidosDulceDuo").doc(id).delete();
+      } else {
+        pedidos = pedidos.filter(pedido => pedido.id !== id);
+        localStorage.setItem("pedidosDulceDuoOnline", JSON.stringify(pedidos));
+        actualizarTodo();
+      }
+    } catch (error) {
+      alert("No se pudo eliminar el pedido: " + error.message);
+    }
+  }
+
+  function llenarPedidos() {
+    const tabla = document.getElementById("tablaPedidos");
+    if (!tabla) return;
+
+    const lista = pedidosFiltrados();
+    tabla.innerHTML = "";
+
+    lista.forEach(pedido => {
+      const extras = [
+        ...(pedido.toppings || []).map(item => "Topping: " + item),
+        ...(pedido.jarabes || []).map(item => "Jarabe: " + item)
+      ].join("<br>") || "Sin extras";
+
+      tabla.innerHTML += `
+        <tr>
+          <td>${pedido.cliente}</td>
+          <td>${pedido.producto}<br><small>Base: ${moneda(pedido.precioProducto)}</small></td>
+          <td>${extras}</td>
+          <td>${pedido.cantidad}</td>
+          <td><strong>${moneda(pedido.total)}</strong></td>
+          <td>${pedido.mes}</td>
+          <td><span class="estado ${pedido.estado.toLowerCase()}">${pedido.estado}</span></td>
+          <td>${pedido.observacion || "---"}</td>
+          <td><button class="btn-rojo" onclick="eliminarPedido('${pedido.id}')">Eliminar</button></td>
+        </tr>
+      `;
+    });
+  }
+
+  function llenarCatalogo() {
+    document.getElementById("tablaProductos").innerHTML = productos.map(item => `
+      <tr><td>${item.nombre}</td><td>${moneda(item.precio)}</td></tr>
+    `).join("");
+
+    document.getElementById("tablaToppings").innerHTML = toppings.map(item => `
+      <tr><td>${item.nombre}</td><td>${moneda(item.precio)}</td></tr>
+    `).join("");
+
+    document.getElementById("tablaJarabes").innerHTML = jarabes.map(item => `
+      <tr><td>${item.nombre}</td><td>${moneda(item.precio)}</td></tr>
+    `).join("");
+  }
+
+  function llenarInicio() {
+    const totalVentas = pedidos.reduce((suma, item) => suma + Number(item.total || 0), 0);
+    const totalPedidos = pedidos.length;
+
+    document.getElementById("totalVentas").textContent = moneda(totalVentas);
+    document.getElementById("totalPedidos").textContent = totalPedidos;
+    document.getElementById("productoTop").textContent = productoMasPedido();
+    document.getElementById("clienteTop").textContent = clienteFrecuente();
+
+    document.getElementById("vistaProductos").innerHTML = productos.map(item => `
+      <div class="producto-card">
+        <h3>${item.nombre}</h3>
+        <p>Precio base: <strong>${moneda(item.precio)}</strong></p>
+      </div>
+    `).join("");
+
+    document.getElementById("vistaToppings").innerHTML = toppings.map(item => `
+      <span class="chip">${item.nombre} + ${moneda(item.precio)}</span>
+    `).join("");
+
+    document.getElementById("vistaJarabes").innerHTML = jarabes.map(item => `
+      <span class="chip">${item.nombre} + ${moneda(item.precio)}</span>
+    `).join("");
+  }
+
+  function productoMasPedido() {
+    const conteo = {};
+
+    pedidos.forEach(pedido => {
+      conteo[pedido.producto] = (conteo[pedido.producto] || 0) + Number(pedido.cantidad || 0);
+    });
+
+    const ordenado = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
+    return ordenado.length ? ordenado[0][0] : "---";
+  }
+
+  function clienteFrecuente() {
+    const conteo = {};
+
+    pedidos.forEach(pedido => {
+      conteo[pedido.cliente] = (conteo[pedido.cliente] || 0) + Number(pedido.total || 0);
+    });
+
+    const ordenado = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
+    return ordenado.length ? ordenado[0][0] : "---";
+  }
+
+  function contarExtras(tipo) {
+    const conteo = {};
+
+    pedidos.forEach(pedido => {
+      (pedido[tipo] || []).forEach(extra => {
+        conteo[extra] = (conteo[extra] || 0) + 1;
+      });
+    });
+
+    const ordenado = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
+    return ordenado.length ? `${ordenado[0][0]} (${ordenado[0][1]} veces)` : "---";
+  }
+
+  function ventasPorMesTexto() {
+    const resumen = {};
+
+    pedidos.forEach(pedido => {
+      resumen[pedido.mes] = (resumen[pedido.mes] || 0) + Number(pedido.total || 0);
+    });
+
+    return Object.entries(resumen)
+      .map(item => `${item[0]}: ${moneda(item[1])}`)
+      .join("<br>") || "---";
+  }
+
+  function llenarReporte() {
+    const totalVentas = pedidos.reduce((suma, item) => suma + Number(item.total || 0), 0);
+    const entregados = pedidos.filter(item => item.estado === "Entregado").length;
+    const pendientes = pedidos.filter(item => item.estado === "Pendiente").length;
+    const cancelados = pedidos.filter(item => item.estado === "Cancelado").length;
+
+    document.getElementById("tablaReporte").innerHTML = `
+      <tr><td>Ventas totales</td><td>${moneda(totalVentas)}</td></tr>
+      <tr><td>Total de pedidos</td><td>${pedidos.length}</td></tr>
+      <tr><td>Producto más pedido</td><td>${productoMasPedido()}</td></tr>
+      <tr><td>Cliente con mayor compra</td><td>${clienteFrecuente()}</td></tr>
+      <tr><td>Topping más usado</td><td>${contarExtras("toppings")}</td></tr>
+      <tr><td>Jarabe más usado</td><td>${contarExtras("jarabes")}</td></tr>
+      <tr><td>Pedidos entregados</td><td>${entregados}</td></tr>
+      <tr><td>Pedidos pendientes</td><td>${pendientes}</td></tr>
+      <tr><td>Pedidos cancelados</td><td>${cancelados}</td></tr>
+      <tr><td>Ventas por mes</td><td>${ventasPorMesTexto()}</td></tr>
+    `;
+  }
+
+  function actualizarTodo() {
+    cargarSelects();
+    llenarInicio();
+    llenarPedidos();
+    llenarCatalogo();
+    llenarReporte();
+  }
+
+  cargarExtras();
+  iniciarFirebase();
+  calcularTotalPedido();
+</script>
+
+</body>
+</html>
